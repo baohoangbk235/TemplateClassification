@@ -24,8 +24,13 @@ class TemplateDataset(Dataset):
         return len(self.list_images)
     
     def __getitem__(self, index: int):
-        for path in glob.glob(self.root_dir, "*.jpg"):
-            print(path)
+        filename = self.image_filenames[index]
+        img_path = os.path.join(self.root_dir, filename)
+        print(img_path)
+        img = cv2.imread(img_path)
+        if self.transforms:
+            img = self.transforms({"image": img})["image"]
+        return img
 
 if __name__ == "__main__":
     dataset = TemplateDataset("D:\TemplateClassification\BK_table_data\table")
