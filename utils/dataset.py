@@ -6,8 +6,13 @@ import torch
 import numpy as np 
 
 import cv2
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
+
+def show_image(img):
+    cv2.imshow("img", img)
+    cv2.waitKey(0) 
+    cv2.destroyAllWindows()
 
 class TemplateDataset(Dataset):
     def __init__(self, root_dir, transforms=None):
@@ -28,9 +33,11 @@ class TemplateDataset(Dataset):
         img_path = os.path.join(self.root_dir, filename)
         print(img_path)
         img = cv2.imread(img_path)
+        show_image(img)
         if self.transforms:
             img = self.transforms({"image": img})["image"]
         return img
 
 if __name__ == "__main__":
-    dataset = TemplateDataset("D:\TemplateClassification\BK_table_data\table")
+    dataset = TemplateDataset("BK_table_data/table")  
+    sample = dataset[1]
