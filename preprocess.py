@@ -35,6 +35,10 @@ def thresholding(img, mode="global"):
         ret, th = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
     return th
 
+
+def extract_dotline():
+    pass 
+
 def extract_line(img_path):
     ori_img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
 
@@ -70,6 +74,7 @@ def extract_line(img_path):
 
     images = [ori_img, th, img, final_img]
     return  images
+
 
 def visualize(titles, images):
     plt.figure(figsize=(12,12))
