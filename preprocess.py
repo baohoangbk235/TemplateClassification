@@ -4,6 +4,7 @@ import numpy as np
 import random
 import argparse
 import os
+from utils import thresholding, bilateral_filter
 
 parser = argparse.ArgumentParser()
 
@@ -13,31 +14,8 @@ args = parser.parse_args()
 
 DATA_DIR = "BK_table_data/table"
 
-def bilateral_filter(img, mode="average"):
-    if mode == "average":
-        blur = cv2.blur(img, (5,5))
-    if mode == "gauss":
-        blur = cv2.GaussianBlur(img,(5,5),0)
-    if mode == "median":
-        median = cv2.medianBlur(img,5)
-    if mode == "bilateral":
-        blur = cv.bilateralFilter(img,9,75,75)
-    return blur
 
-def thresholding(img, mode="global"):
-    if mode == "mean":
-        th = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-                                   cv2.THRESH_BINARY, 11, 2)
-    elif mode == "gauss":
-        th = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY, 11, 2)
-    elif mode == "global":
-        ret, th = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
-    return th
-
-def extract_line(img_path):
-    ori_img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
-
+def extract_line(ori_img):
     gray = cv2.cvtColor(ori_img, cv2.COLOR_RGB2GRAY)
 
     gray = bilateral_filter(gray)
@@ -65,8 +43,9 @@ def extract_line(img_path):
 
     cv2.drawContours(img, filter_contours, -1, (255,0,0), 3)
 
-    mask = (255 - erosion)/255
-    final_img = ori_img * np.reshape(np.repeat([mask], 3), (img.shape[0], img.shape[1], 3))
+    mask= np.reshape(np.repeat([erosion], 3), (img.shape[0], img.shape[1], 3))
+
+    final_img = cv2.bitwise_or(ori_img, mask)
 
     images = [ori_img, th, img, final_img]
     return  images
@@ -77,7 +56,7 @@ def visualize(titles, images):
         plt.subplot(2, 2, i+1)
         if titles[i] == 'Erosion':
             plt.imshow(images[i].astype("uint8"), "gray")
-        else:
+        else:   
             plt.imshow(images[i].astype("uint8"))
         plt.title(titles[i])
     plt.show()
@@ -88,6 +67,8 @@ if __name__ == "__main__":
         img_path = os.path.join(DATA_DIR, random.choice(os.listdir(DATA_DIR)))
     else:
         img_path = args.path
+    
     img_path = img_path.replace(os.sep, '/')
-    images = extract_line(img_path)
+    ori_img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
+    images = extract_line(ori_img)
     visualize(titles, images)
