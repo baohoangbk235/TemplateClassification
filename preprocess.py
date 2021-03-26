@@ -14,6 +14,34 @@ args = parser.parse_args()
 
 DATA_DIR = "BK_table_data/table"
 
+def bilateral_filter(img, mode="average"):
+    if mode == "average":
+        blur = cv2.blur(img, (5,5))
+    if mode == "gauss":
+        blur = cv2.GaussianBlur(img,(5,5),0)
+    if mode == "median":
+        median = cv2.medianBlur(img,5)
+    if mode == "bilateral":
+        blur = cv.bilateralFilter(img,9,75,75)
+    return blur
+
+def thresholding(img, mode="global"):
+    if mode == "mean":
+        th = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+                                   cv2.THRESH_BINARY, 11, 2)
+    elif mode == "gauss":
+        th = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                   cv2.THRESH_BINARY, 11, 2)
+    elif mode == "global":
+        ret, th = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+    return th
+
+
+def extract_dotline():
+    pass 
+
+def extract_line(img_path):
+    ori_img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
 
 def extract_line(ori_img):
     gray = cv2.cvtColor(ori_img, cv2.COLOR_RGB2GRAY)
@@ -49,6 +77,7 @@ def extract_line(ori_img):
 
     images = [ori_img, th, img, final_img]
     return  images
+
 
 def visualize(titles, images):
     plt.figure(figsize=(12,12))
