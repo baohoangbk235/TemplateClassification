@@ -14,6 +14,7 @@ from utils.dataset import TemplateDataset
 import albumentations as A 
 from albumentations.pytorch.transforms import ToTensorV2
 import argparse
+from losses import TripletLoss
 
 if torch.cuda.is_available():
     device = "cuda:2"
@@ -69,6 +70,8 @@ trainloader = DataLoader(traindataset, batch_size=2, shuffle=True, collate_fn=co
 model = get_model(6)
 model.to(device)
 num_epochs = 1
+
+loss = TripletLoss()
 
 for batch, (images, labels) in enumerate(trainloader):
     anchor, pos, neg = images 
