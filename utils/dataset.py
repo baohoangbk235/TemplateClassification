@@ -23,19 +23,21 @@ class TemplateDataset(Dataset):
         if not os.path.exists(root_dir):
             exit()
         
-        self.image_filenames = os.listdir(self.root_dir)
+        self.labels = os.listdir(self.root_dir)
     
     def __len__(self):
         return len(self.list_images)
     
     def __getitem__(self, index: int):
-        filename = self.image_filenames[index]
-        img_path = os.path.join(self.root_dir, filename)
+        label = self.labels[index]
+        self.image_filenames = os.listdir(os.path.join(self.root_dir, label))
+        filename = random.choice(self.image_filenames)
+        img_path = os.path.join(self.root_dir, self.label, filename)
         print(img_path)
-        img = cv2.imread(img_path)
-        show_image(img)
-        if self.transforms:
-            img = self.transforms({"image": img})["image"]
+        # img = cv2.imread(img_path)
+        # show_image(img)
+        # if self.transforms:
+        #     img = self.transforms({"image": img})["image"]
         return img
 
 if __name__ == "__main__":
