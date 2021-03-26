@@ -7,6 +7,7 @@ import torch
 import numpy as np 
 import cv2
 import matplotlib.pyplot as plt
+import glob
 
 parser = argparse.ArgumentParser()
 
@@ -29,28 +30,31 @@ class TemplateDataset(Dataset):
             exit()
         
         self.labels = os.listdir(self.root_dir)
-    
+        self.triplets = []
+        self.triplets_labels = []
+        self.label2int = {str(k):v for v, k in enumerate(self.labels)}
+        for label in self.labels: 
+            print("[INFO] Processing {} ...".format(label))
+            list_paths = glob.glob(os.path.join(self.root_dir, label, "*.jpg"))
+            neg_label = random.choice([neg_ for neg_ in self.labels if neg_ != label])
+            for anchor in list_paths:
+                if len(list_paths) < 2:
+                    break
+                positive = random.choice([p for p in list_paths if p != anchor])
+                negative = random.choice(glob.glob(os.path.join(self.root_dir, neg_label, "*.jpg")))
+                self.triplets.append([anchor, positive, negative])
+                self.triplets_labels.append([self.label2int[label], self.label2int[label], self.label2int[neg_label]])    
+
     def __len__(self):
-        return len(self.list_images)
+        return len(self.triplets)
     
-    def get_triplet(self, anchor_label, neg_label):
-        image_filenames = os.listdir(os.path.join(self.root_dir, anchor_label))
-        anchor_filename = random.choice(image_filenames)
-        anchor_path = os.path.join(self.root_dir, anchor_label, anchor_filename)
-        anchor_img = cv2.imread(anchor_path.replace(os.sep, '/'))
-
-        pos_filename = random.choice([pos for pos in image_filenames if pos != anchor_filename])
-        pos_path = os.path.join(self.root_dir, anchor_label, pos_filename)
-        pos_img = cv2.imread(pos_path.replace(os.sep, '/'))
-
-        neg_filename = random.choice(os.listdir(os.path.join(self.root_dir, neg_label)))
-        neg_path = os.path.join(self.root_dir, neg_label, neg_filename)
-        neg_img = cv2.imread(neg_path.replace(os.sep, '/'))
-
-        return anchor_img, pos_img, neg_img
+    def get_img(self, path):
+        path = path.replace(os.sep, '/')
+        img = cv2.imread(path, cv2.COLOR_BGR2RGB)
+        return img 
     
-    def show_triplet(self, images):
-        titles = ["Anchor", "Positive", "Negative"]
+    def show_triplet(self, images, titles):
+        # titles = ["Anchor", "Positive", "Negative"]
         plt.figure(figsize=(12,4))
         for i in range(3):
             plt.subplot(1, 3, i+1)
@@ -59,20 +63,23 @@ class TemplateDataset(Dataset):
         plt.show()
     
     def __getitem__(self, index: int):
-        label = self.labels[index]
-        neg_label = random.choice([neg_ for neg_ in self.labels if neg_ != label])
-
-        anchor, pos, neg = self.get_triplet(label, neg_label)
-        self.show_triplet([anchor, pos, neg])
+        triplets = self.triplets[index]
+        labels = self.triplets_labels[index]
+        anchor = self.get_img(triplets[0])
+        pos = self.get_img(triplets[1])
+        neg = self.get_img(triplets[2])
+        images = [anchor, pos, neg]
         if self.transforms:
             anchor = self.transforms({"image": anchor})["image"]
             pos = self.transforms({"image": pos})["image"]
             neg = self.transforms({"image": neg})["image"]
-        return [anchor, pos, neg], [label, label, neg_label]
+        # self.show_triplet(images, labels)
+        return images, labels
+        
 
 if __name__ == "__main__":
     if args.path is None:
         dataset = TemplateDataset("BK_table_data/table")  
     else:
         dataset = TemplateDataset(args.path)
-    sample = dataset[2]
+    images  = dataset[2]
