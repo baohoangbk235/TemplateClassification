@@ -16,7 +16,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 import argparse
 
 if torch.cuda.is_available():
-    device = "cuda"
+    device = "cuda:2"
 else:
     device = "cpu"
 
@@ -57,7 +57,7 @@ def collate_fn(batch):
 
     return images_list, labels_list
 
-traindataset = TemplateDataset(args["path"], transforms=get_train_transforms)  
+traindataset = TemplateDataset("/mnt/disk2/baohg/data", transforms=get_train_transforms)  
 trainloader = DataLoader(traindataset, batch_size=2, shuffle=True, collate_fn=collate_fn)
 
 # with open("BK_table_data/001/labels.txt", "r") as f:
@@ -67,11 +67,12 @@ trainloader = DataLoader(traindataset, batch_size=2, shuffle=True, collate_fn=co
 #         classes.append(line.rstrip("\n"))
 
 model = get_model(6)
-
+model.to(device)
 num_epochs = 1
 
 for batch, (images, labels) in enumerate(trainloader):
     anchor, pos, neg = images 
+    anchor.to(device)
     anchor_emb = model(anchor)
     print(torch.shape(anchor_emb))
     
