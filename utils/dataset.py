@@ -1,6 +1,7 @@
+import random
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-
+import argparse
 import os
 import torch
 import numpy as np 
@@ -8,6 +9,11 @@ import numpy as np
 import cv2
 # import matplotlib.pyplot as plt
 
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--path", "-p", type=str, help="path to root dir")
+
+args = parser.parse_args()
 
 def show_image(img):
     cv2.imshow("img", img)
@@ -41,5 +47,8 @@ class TemplateDataset(Dataset):
         return img
 
 if __name__ == "__main__":
-    dataset = TemplateDataset("BK_table_data/table")  
+    if args.path is None:
+        dataset = TemplateDataset("BK_table_data/table")  
+    else:
+        dataset = TemplateDataset(args.path)
     sample = dataset[1]
