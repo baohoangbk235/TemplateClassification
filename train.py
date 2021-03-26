@@ -13,11 +13,18 @@ from torch.utils.data import Dataset, DataLoader
 from utils.dataset import TemplateDataset
 import albumentations as A 
 from albumentations.pytorch.transforms import ToTensorV2
+import argparse
 
 if torch.cuda.is_available():
     device = "cuda"
 else:
     device = "cpu"
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--path", "-p", type=str, help="path to root dir")
+
+args = parser.parse_args()
 
 def get_model(num_classes):
     vgg_16 = models.vgg16(pretrained=True)
@@ -50,16 +57,16 @@ def collate_fn(batch):
 
     return images_list, labels_list
 
-traindataset = TemplateDataset("BK_table_data/labeld_001", transforms=get_train_transforms)  
+traindataset = TemplateDataset(args["path"], transforms=get_train_transforms)  
 trainloader = DataLoader(traindataset, batch_size=2, shuffle=True, collate_fn=collate_fn)
 
-with open("BK_table_data/001/labels.txt", "r") as f:
-    lines = f.readlines()
-    classes = []
-    for line in lines:
-        classes.append(line.rstrip("\n"))
+# with open("BK_table_data/001/labels.txt", "r") as f:
+#     lines = f.readlines()
+#     classes = []
+#     for line in lines:
+#         classes.append(line.rstrip("\n"))
 
-model = get_model(len(classes))
+model = get_model(6)
 
 num_epochs = 1
 
