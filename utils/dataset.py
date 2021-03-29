@@ -70,9 +70,7 @@ class TemplateDataset(Dataset):
         neg = self.get_img(triplets[2])
         images = [anchor, pos, neg]
         if self.transforms:
-            anchor = self.transforms(image=anchor)["image"]
-            pos = self.transforms(image=pos)["image"]
-            neg = self.transforms(image=neg)["image"]
+            images = [self.transforms(image=img)["image"] for img in images]
         # self.show_triplet(images, labels)
         return images, labels
         

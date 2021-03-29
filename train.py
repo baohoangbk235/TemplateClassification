@@ -36,6 +36,7 @@ def get_model(num_classes):
 
 def get_train_transforms():
     return A.Compose([
+        A.Resize(256, 256), 
         A.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225]),
         ToTensorV2()
@@ -65,18 +66,43 @@ trainloader = DataLoader(traindataset, batch_size=2, shuffle=True, collate_fn=co
 #     for line in lines:
 #         classes.append(line.rstrip("\n"))
 
-model = get_model(6)
+num_classes = len(os.listdir("/mnt/disk2/baohg/data"))
+
+model = get_model(512)
 model.to(device)
 num_epochs = 1
 
-loss = TripletLoss()
+triplet_loss = TripletLoss()
 
-for batch, (images, labels) in enumerate(trainloader):
-    anchor, pos, neg = images 
-    anchor.to(device)
-    anchor_emb = model(anchor)
-    print(torch.shape(anchor_emb))
-    break
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+running_loss = 0
+for epoch in range(num_epochs):
+    for i, (images, labels) in enumerate(trainloader):
+        anchors = torch.stack([imgs[0] for imgs in images], dim=0)
+        positives = torch.stack([imgs[1] for imgs in images], dim=0)
+        negatives = torch.stack([imgs[2] for imgs in images], dim=0)
+        
+        anchors = anchors.to(device)
+        positives = positives.to(device)
+        negatives = negatives.to(device)
+
+        anchor_emb = model(anchors)        
+        pos_emb = model(positives)
+        neg_emb = model(negatives)
+        loss = triplet_loss(anchor_emb, pos_emb, neg_emb)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+
+        if i % 1000 == 999:
+            print(f'Step {i} : {epoch+1}/{num_epochs} : Loss: {running_loss/100}')
+            running_loss = 0
+
+        del anchor_emb
+        del pos_emb
+        del neg_emb
     
 
 
