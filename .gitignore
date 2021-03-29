@@ -131,3 +131,5 @@ dmypy.json
 
 #data
 BK_table_data/
+
+*.ipynb

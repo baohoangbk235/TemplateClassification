@@ -14,7 +14,7 @@ from utils.dataset import TemplateDataset
 import albumentations as A 
 from albumentations.pytorch.transforms import ToTensorV2
 import argparse
-from losses import TripletLoss
+from utils.losses import TripletLoss
 
 if torch.cuda.is_available():
     device = "cuda"
@@ -36,12 +36,11 @@ def get_model(num_classes):
 
 def get_train_transforms():
     return A.Compose([
-        A.Resize(256, 256),
         A.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225]),
-        ToTensorV2
-
-    ]) 
+        A.Resize(256, 256),
+        ToTensorV2(p=1.0)
+    ], p=1.) 
 
 def get_valid_transforms():
     pass 
@@ -58,7 +57,7 @@ def collate_fn(batch):
 
     return images_list, labels_list
 
-traindataset = TemplateDataset(args["path"], transforms=get_train_transforms)  
+traindataset = TemplateDataset("BK_table_data/labeld_001/", transforms=get_train_transforms())  
 trainloader = DataLoader(traindataset, batch_size=2, shuffle=True, collate_fn=collate_fn)
 
 # with open("BK_table_data/001/labels.txt", "r") as f:
@@ -74,9 +73,9 @@ num_epochs = 1
 loss = TripletLoss()
 
 for batch, (images, labels) in enumerate(trainloader):
-    anchor, pos, neg = images 
-    anchor_emb = model(anchor)
-    print(torch.shape(anchor_emb))
+    # anchor_emb = model(anchor)
+    # print(torch.shape(anchor_emb))
+    break 
     
 
 
