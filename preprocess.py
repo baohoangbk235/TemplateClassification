@@ -78,7 +78,6 @@ def extract_line(ori_img):
     images = [ori_img, th, img, final_img]
     return  images
 
-
 def visualize(titles, images):
     plt.figure(figsize=(12,12))
     for i in range(4):
